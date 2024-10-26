@@ -1,0 +1,10 @@
+# Arquivos de objetos e binários
+*.o
+*.out
+*.exe
+
+# Executável
+main
+
+# Configurações do VSCode
+.vscode/
