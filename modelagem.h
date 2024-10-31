@@ -7,6 +7,13 @@
 #include <math.h>
 #define PI 3.1415926
 
+typedef struct spaceship
+{
+    GLfloat x, y; //Posição X e Y do centro do corpo da nave
+    GLfloat tX, tY; //Variaveis usadas para transladar a nave no eixo x e y
+    GLfloat scaleX, scaleY; //Variaveis usadas para escalonar a nave em x e y
+}Spaceship;
+
 void display(void);
 void Special_keyboard(GLint tecla, int x, int y);
 void keyboard(unsigned char key, int x, int y);
@@ -98,16 +105,16 @@ void ground(void);
  * @param y Variavel usada para deslocar um pinheiro no eixo y
  * @param greenLevel Valor inicial do verde
  */
+void tree_model(int greenLevel);
 void tree(float x, float y, int greenLevel);
-
 /**
  * @brief Desenha uma nuvem
  * @param x Posição x do primeiro vertice
  * @param y Posição y do primeiro vertice
  * @param radius Raio das circunferencias das extremidades
  */
-void cloud(float x, float y, float radius);
-
+void cloud_model();
+void cloud(float scale, float x, float y);
 
 /**
  * @brief Desenha o sol
@@ -140,4 +147,9 @@ void cartman(void);
  * @brief Desenha a placa amarela
  */
 void signpost(void);
+
+/**
+ * @brief Inicializa sShip com os valores iniciais usados para posicionar, transladar e escalonar
+ */
+void inicializarSship(void);
 #endif //MODELAGEM_H_INCLUDED
