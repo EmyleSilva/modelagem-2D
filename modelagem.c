@@ -43,7 +43,11 @@ void display(void)
     cloud(1.0, -6.0, 6.0);
     cloud(0.2, 4.5, 4.0); 
     cloud(0.6, 0.0, 8.0);
-    cloud(0.6, -1.0, 8.0);
+
+    glPushMatrix();
+        glRotatef(40, 0.0, 0.0, 1.0);
+        cloud(0.6, 2.0, 9.0);
+    glPopMatrix();
 
     sun(-9.0f, 9.0);
 
