@@ -1,6 +1,7 @@
 #include "modelagem.h"
 
 Spaceship sShip; //Variavel usada para guardar valores referentes a nave espacial
+Cartman cartman; //Variavel usada para controlar os angulos de rotação do cartman
 
 //RGB para controlar a cor da nave
 int R = 0, G = 0, B = 0; 
@@ -17,7 +18,8 @@ int main(int argc, char** argv)
     glutDisplayFunc(display);
     glutSpecialFunc(Special_keyboard);
     glutKeyboardFunc(keyboard);
-    inicializarSship(); //Inicializa os valores da nave
+    initSship(); //Inicializa os valores da nave
+    initCartman(); //Inicializa os valores do cartman
     glutMainLoop();
     return 0;
 }
@@ -44,6 +46,7 @@ void display(void)
     cloud(0.2, 4.5, 4.0); 
     cloud(0.6, 0.0, 8.0);
 
+    //Desenha uma nuvem rotacionada
     glPushMatrix();
         glRotatef(40, 0.0, 0.0, 1.0);
         cloud(0.6, 2.0, 9.0);
@@ -52,8 +55,10 @@ void display(void)
     sun(-9.0f, 9.0);
 
     signpost();
-    cartman();
-
+    
+    printf("grau perna: %.2f | grau torso: %.2f | grau cabeça: %.2f\n\n", cartman.legs, cartman.torso, cartman.head);
+    draw_cartman();
+    
     target();
 
     glPushMatrix();
@@ -61,7 +66,7 @@ void display(void)
             glScalef(sShip.scaleX, sShip.scaleY, 1.0);
             glTranslatef(-sShip.tX, -sShip.tY, 0.0);
             spaceship(); 
-            printf("escala x: %.2f | escala y: %.2f | x: %.2f | y: %.2f\n", sShip.scaleX, sShip.scaleY, sShip.tX, sShip.tY);
+            //printf("escala x: %.2f | escala y: %.2f | x: %.2f | y: %.2f\n", sShip.scaleX, sShip.scaleY, sShip.tX, sShip.tY);
     glPopMatrix();
 
     cloud(1.5, 5.0, 8.0);
@@ -486,74 +491,87 @@ void target()
     glEnd();
 }
 
-void cartman()
+void draw_cartman()
 {
-    //Desenha os sapatos
-    glColor3ub(5, 5, 5);
-    drawEllipse(0.0, -7.0, 1.0, 0.1, 100);
+    glPushMatrix(); //ESCOPO 1 (pernas)
 
-    //Desenha o short
-    glColor3ub(54, 25, 5);
-    drawRectangle(-0.8, -7.0, 0.5, 1.6);
+        glScalef(1.4, 1.0, 1.0);
+        glRotatef(cartman.legs, 0.0, 0.0, 1.0); /** @todo Melhorar rotação do cartman */
+        /*** PERNA */
+        //Desenha os sapatos
+        glColor3ub(5, 5, 5);
+        drawEllipse(0.0, -7.0, 1.0, 0.1, 100); //Em x, vai de -1 a 1, em y, começa em -7
 
-    //Desenha a blusa
-    glColor3ub(175, 2, 19);
-    drawEllipse(0.0, -6.1, 1.05, 0.7, 100);
+        //Desenha o short
+        glColor3ub(54, 25, 5);
+        drawRectangle(-0.8, -7.0, 0.5, 1.6);
 
-    //Desenha o chapéu
-    glColor3ub(9, 171, 144);
-    drawCircle(0.0, -5.0, 1.0, 100);
+        glPushMatrix(); //ESCOPO 2 (tronco)
+            glRotatef(cartman.torso, 0.0, 0.0, 1.0);
+            //Desenha a blusa
+            glColor3ub(175, 2, 19);
+            drawEllipse(0.0, -6.1, 1.05, 0.7, 100);
 
-    //Desenha o rosto
-    glColor3ub(224, 155, 77);
-    drawEllipse(0.0, -5.3, 1.0, 0.8, 100);
+            //Desenha as mãos
+            glColor3ub(225, 217, 27);
+            drawCircle(-1.07, -6.1, 0.2, 100);
+            drawCircle(1.07, -6.1, 0.2, 100);
 
-    //Corrige o espaço do chapéu em cima do rosto
-    glColor3ub(9, 171, 144);
-    drawEllipse(0.0, -4.6, 0.5, 0.2, 100);
-    drawRectangle(-1.0, -5.1, 0.5, 2.0);
+            //Desenha a linha vertical da camisa e os botões
+            glColor3ub(0, 0, 0);
+            drawVerticalLine(0.0, -6.8, 0.7, 1.0);
 
-    //Desenha os detalhes amarelos do chapéu
-    glColor3ub(225, 217, 27);
-    drawRectangle(-1.0, -5.2, 0.1, 2.0);
-    drawEllipse(0.0, -4.0, 0.2, 0.1, 100);
+            glPointSize(3.0);
+            glBegin(GL_POINTS);
+                glVertex2f(-0.1, -6.6);
+                glVertex2f(-0.1, -6.4);
+                glVertex2f(-0.1, -6.2);
+            glEnd();
+            
+            glPushMatrix(); //ESCOPO 3 (cabeça)
+                glRotatef(cartman.head, 0.0, 0.0, 1.0);
+                //Desenha o chapéu
+                glColor3ub(9, 171, 144);
+                drawCircle(0.0, -5.0, 1.0, 100);
 
-    //Desenha as mãos
-    drawCircle(-1.07, -6.1, 0.2, 100);
-    drawCircle(1.07, -6.1, 0.2, 100);
+                //Desenha o rosto
+                glColor3ub(224, 155, 77);
+                drawEllipse(0.0, -5.3, 1.0, 0.8, 100);
 
-    //Desenha a linha vertical da camisa e os botões
-    glColor3ub(0, 0, 0);
-    drawVerticalLine(0.0, -6.8, 0.7, 1.0);
+                //Corrige o espaço do chapéu em cima do rosto
+                glColor3ub(9, 171, 144);
+                drawEllipse(0.0, -4.6, 0.5, 0.2, 100);
+                drawRectangle(-1.0, -5.1, 0.5, 2.0);
 
-    glPointSize(3.0);
-    glBegin(GL_POINTS);
-        glVertex2f(-0.1, -6.6);
-        glVertex2f(-0.1, -6.4);
-        glVertex2f(-0.1, -6.2);
-    glEnd();
+                //Desenha os detalhes amarelos do chapéu
+                glColor3ub(225, 217, 27);
+                drawRectangle(-1.0, -5.2, 0.1, 2.0);
+                drawEllipse(0.0, -4.0, 0.2, 0.1, 100); //Y vai até -4.0
 
-    //Desenha os olhos
-    glColor3ub(255, 255, 255);
-    drawEllipse(-0.2, -5.4, 0.2, 0.25, 100);
-    drawEllipse(0.2, -5.4, 0.2, 0.25, 100);
+                //Desenha os olhos
+                glColor3ub(255, 255, 255);
+                drawEllipse(-0.2, -5.4, 0.2, 0.25, 100);
+                drawEllipse(0.2, -5.4, 0.2, 0.25, 100);
 
-    glColor3ub(0,0,0); 
-    glPointSize(3.0);   
-    glBegin(GL_POINTS);
-        glVertex2f(-0.1, -5.4);
-        glVertex2f(0.2, -5.4);
-    glEnd();
+                glColor3ub(0,0,0); 
+                glPointSize(3.0);   
+                glBegin(GL_POINTS);
+                    glVertex2f(-0.1, -5.4);
+                    glVertex2f(0.2, -5.4);
+                glEnd();
 
-    //Desenha a boca
-    glLineWidth(1.2);
-    glBegin(GL_LINES);
-        glVertex2f(-0.1, -5.9);
-        glVertex2f(0.1, -5.9);
+                //Desenha a boca
+                glLineWidth(1.2);
+                glBegin(GL_LINES);
+                    glVertex2f(-0.1, -5.9);
+                    glVertex2f(0.1, -5.9);
 
-        glVertex2f(-0.1, -5.9);
-        glVertex2f(-0.2, -5.85);
-    glEnd();
+                    glVertex2f(-0.1, -5.9);
+                    glVertex2f(-0.2, -5.85);
+                glEnd();
+            glPopMatrix(); // ESCOPO 3
+        glPopMatrix(); // ESCOPO 2
+    glPopMatrix(); //ESCOPO 1
 }
 
 void signpost()
@@ -620,45 +638,68 @@ void signpost()
     drawEllipse(-7.7744119659502,-2.4172710155313, 0.04, 0.2, 100);
 }
 
-void inicializarSship()
+void initSship()
 {
-    sShip.x = 0.0;
-    sShip.y = 0.0;
     sShip.tX = 0.0;
     sShip.tY = 0.0;
     sShip.scaleX = 1.0;
     sShip.scaleY = 1.0; 
 }
 
+void initCartman()
+{
+    cartman.head = 0.0;
+    cartman.torso = 0.0;
+    cartman.legs = 0.0;
+}
+
 void Special_keyboard(GLint tecla, int x, int y)
 {
     switch (tecla)
     {
-    case GLUT_KEY_UP:   //Movimenta para cima
-        sShip.tY+=0.5;
-        break;
-    case GLUT_KEY_DOWN: //Movimenta para baixo
-        sShip.tY-=0.5;
-        break;
-    case GLUT_KEY_LEFT: //Movimenta para a esquerda
-        sShip.tX-=0.5;
-        break;
-    case GLUT_KEY_RIGHT: //Movimenta para a direita
-        sShip.tX+=0.5;
-        break;
-    case GLUT_KEY_PAGE_UP: //Aumenta o tamanho do objeto
-        sShip.scaleX+=0.01;
-        sShip.scaleY+=0.01;
-        break;
-    case GLUT_KEY_PAGE_DOWN: //Diminui o tamanho do objeto
-        sShip.scaleX-=0.01;
-        sShip.scaleY-=0.01;
-        //Quando as variaveis de escala atingem valores negativos, a nave é espelhada
-        //A verificação abaixo garante que os numeros variem apenas entre valores positivos e 0
-        if(sShip.scaleX < 0 && sShip.scaleY < 0) 
-            sShip.scaleX = sShip.scaleY = 0;
-        printf("escala x: %.2f | escala y: %.2f | x: %.2f | y: %.2f\n", sShip.scaleX, sShip.scaleY, sShip.tX, sShip.tY);
-        break;
+        case GLUT_KEY_UP:   //Movimenta para cima
+            sShip.tY+=0.5;
+            break;
+        case GLUT_KEY_DOWN: //Movimenta para baixo
+            sShip.tY-=0.5;
+            break;
+        case GLUT_KEY_LEFT: //Movimenta para a esquerda
+            sShip.tX-=0.5;
+            break;
+        case GLUT_KEY_RIGHT: //Movimenta para a direita
+            sShip.tX+=0.5;
+            break;
+        case GLUT_KEY_PAGE_UP: //Aumenta o tamanho do objeto
+            sShip.scaleX+=0.01;
+            sShip.scaleY+=0.01;
+            break;
+        case GLUT_KEY_PAGE_DOWN: //Diminui o tamanho do objeto
+            sShip.scaleX-=0.01;
+            sShip.scaleY-=0.01;
+            //Quando as variaveis de escala atingem valores negativos, a nave é espelhada
+            //A verificação abaixo garante que os numeros variem apenas entre valores positivos e 0
+            if(sShip.scaleX < 0 && sShip.scaleY < 0) 
+                sShip.scaleX = sShip.scaleY = 0;
+            printf("escala x: %.2f | escala y: %.2f | x: %.2f | y: %.2f\n", sShip.scaleX, sShip.scaleY, sShip.tX, sShip.tY);
+            break;
+        case GLUT_KEY_F1: //Movimenta o corpo todo no sentido anti-horario
+            cartman.legs += 0.5;
+            break;
+        case GLUT_KEY_F2:
+            cartman.legs -= 0.5;
+            break;
+        case GLUT_KEY_F3:
+            cartman.torso += 0.5;
+            break;
+        case GLUT_KEY_F4:
+            cartman.torso -= 0.5;
+            break;
+        case GLUT_KEY_F5:
+            cartman.head += 0.5;
+            break;
+        case GLUT_KEY_F6:
+            cartman.head -= 0.5;
+            break;  
     }
     glutPostRedisplay();
 }

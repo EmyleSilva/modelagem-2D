@@ -9,10 +9,14 @@
 
 typedef struct spaceship
 {
-    GLfloat x, y; //Posição X e Y do centro do corpo da nave
-    GLfloat tX, tY; //Variaveis usadas para transladar a nave no eixo x e y
+    GLfloat tX, tY; //Coordenadas do centro da nave
     GLfloat scaleX, scaleY; //Variaveis usadas para escalonar a nave em x e y
 }Spaceship;
+
+typedef struct cartman
+{
+    GLfloat legs, torso, head; //Angulo de rotação para TGs hierárquicas
+}Cartman;
 
 void display(void);
 void Special_keyboard(GLint tecla, int x, int y);
@@ -141,7 +145,7 @@ void target(void);
 /**
  * @brief Desenha o cartman
  */
-void cartman(void);
+void draw_cartman(void);
 
 /**
  * @brief Desenha a placa amarela
@@ -151,5 +155,6 @@ void signpost(void);
 /**
  * @brief Inicializa sShip com os valores iniciais usados para posicionar, transladar e escalonar
  */
-void inicializarSship(void);
+void initSship(void);
+void initCartman(void);
 #endif //MODELAGEM_H_INCLUDED
