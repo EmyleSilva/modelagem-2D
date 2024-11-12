@@ -99,25 +99,32 @@ void mountains(void);
  */
 void ground(void);
 
+
 /**
- * @brief Desenha um pinheiro
- * 
- * Para adicionar pinheiros em posições diferentes, basta passar
- * valores diferentes de x e y (é feito o deslocamento horizontal e vertical).
- * 
- * @param x Variavel usada para deslocar um pinheiro no eixo x
- * @param y Variavel usada para deslocar um pinheiro no eixo y
- * @param greenLevel Valor inicial do verde
+ * @brief Desenha um modelo de pinheiro com base no sistema de referência do objeto
  */
 void tree_model(int greenLevel);
-void tree(float x, float y, int greenLevel);
+
 /**
- * @brief Desenha uma nuvem
+ * @brief Desenha um pinheiro no universo
+ * 
  * @param x Posição x do primeiro vertice
  * @param y Posição y do primeiro vertice
- * @param radius Raio das circunferencias das extremidades
+ * @param greenLevel Valor inicial do verde
+ */
+void tree(float x, float y, int greenLevel);
+
+/**
+ * @brief Desenha um modelo de uma nuvem com base no sistema de referência do objeto
  */
 void cloud_model();
+
+/**
+ * @brief Desenha uma nuvem em um ponto do universo
+ * @param scale Escala da nuvem
+ * @param x Posição x do primeiro vertice
+ * @param y Posição y do primeiro vertice
+ */
 void cloud(float scale, float x, float y);
 
 /**
@@ -156,5 +163,9 @@ void signpost(void);
  * @brief Inicializa sShip com os valores iniciais usados para posicionar, transladar e escalonar
  */
 void initSship(void);
+
+/**
+ * @brief Inicializa as variaveis de angulos iniciais do cartman
+ */
 void initCartman(void);
 #endif //MODELAGEM_H_INCLUDED

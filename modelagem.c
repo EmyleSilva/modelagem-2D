@@ -66,7 +66,6 @@ void display(void)
             glScalef(sShip.scaleX, sShip.scaleY, 1.0);
             glTranslatef(-sShip.tX, -sShip.tY, 0.0);
             spaceship(); 
-            //printf("escala x: %.2f | escala y: %.2f | x: %.2f | y: %.2f\n", sShip.scaleX, sShip.scaleY, sShip.tX, sShip.tY);
     glPopMatrix();
 
     cloud(1.5, 5.0, 8.0);
@@ -496,7 +495,9 @@ void draw_cartman()
     glPushMatrix(); //ESCOPO 1 (pernas)
 
         glScalef(1.4, 1.0, 1.0);
-        glRotatef(cartman.legs, 0.0, 0.0, 1.0); /** @todo Melhorar rotação do cartman */
+        glTranslatef(0.0, -7.0, 0.0);
+        glRotatef(cartman.legs, 0.0, 0.0, 1.0); 
+        glTranslatef(0.0, 7.0, 0.0);
         /*** PERNA */
         //Desenha os sapatos
         glColor3ub(5, 5, 5);
@@ -507,7 +508,9 @@ void draw_cartman()
         drawRectangle(-0.8, -7.0, 0.5, 1.6);
 
         glPushMatrix(); //ESCOPO 2 (tronco)
+            glTranslatef(0.0,  -6.1, 0.0);
             glRotatef(cartman.torso, 0.0, 0.0, 1.0);
+            glTranslatef(0.0, 6.1, 0.0);
             //Desenha a blusa
             glColor3ub(175, 2, 19);
             drawEllipse(0.0, -6.1, 1.05, 0.7, 100);
@@ -529,7 +532,9 @@ void draw_cartman()
             glEnd();
             
             glPushMatrix(); //ESCOPO 3 (cabeça)
+                glTranslatef(0.0, -5.0, 0.0);
                 glRotatef(cartman.head, 0.0, 0.0, 1.0);
+                glTranslatef(0.0, 5.0, 0.0);
                 //Desenha o chapéu
                 glColor3ub(9, 171, 144);
                 drawCircle(0.0, -5.0, 1.0, 100);
@@ -682,23 +687,23 @@ void Special_keyboard(GLint tecla, int x, int y)
                 sShip.scaleX = sShip.scaleY = 0;
             printf("escala x: %.2f | escala y: %.2f | x: %.2f | y: %.2f\n", sShip.scaleX, sShip.scaleY, sShip.tX, sShip.tY);
             break;
-        case GLUT_KEY_F1: //Movimenta o corpo todo no sentido anti-horario
-            cartman.legs += 0.5;
+        case GLUT_KEY_F1: 
+            cartman.legs += 1.0;
             break;
         case GLUT_KEY_F2:
-            cartman.legs -= 0.5;
+            cartman.legs -= 1.0;
             break;
         case GLUT_KEY_F3:
-            cartman.torso += 0.5;
+            cartman.torso += 1.0;
             break;
         case GLUT_KEY_F4:
-            cartman.torso -= 0.5;
+            cartman.torso -= 1.0;
             break;
         case GLUT_KEY_F5:
-            cartman.head += 0.5;
+            cartman.head += 1.0;
             break;
         case GLUT_KEY_F6:
-            cartman.head -= 0.5;
+            cartman.head -= 1.0;
             break;  
     }
     glutPostRedisplay();
