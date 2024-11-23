@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <time.h>
 #define PI 3.1415926
 
 typedef struct spaceship
@@ -17,6 +18,11 @@ typedef struct cartman
 {
     GLfloat legs, torso, head; //Angulo de rotação para TGs hierárquicas
 }Cartman;
+
+typedef struct object{
+    GLfloat x, y; //Posição inicial do objeto
+    GLfloat x_min, x_max, y_min, y_max; //Coordenadas do bounding box
+}Object;
 
 void display(void);
 void Special_keyboard(GLint tecla, int x, int y);
@@ -150,6 +156,11 @@ void spaceship(void);
 void target(void);
 
 /**
+ * @brief Modela o projétil
+ */
+void draw_projectile(void);
+
+/**
  * @brief Desenha o cartman
  */
 void draw_cartman(void);
@@ -160,12 +171,12 @@ void draw_cartman(void);
 void signpost(void);
 
 /**
- * @brief Inicializa sShip com os valores iniciais usados para posicionar, transladar e escalonar
+ * @brief Inicializa as variaveis globais com os valores de estado inicial dos objetos (Nave, cartman, kenny e projétil)
  */
-void initSship(void);
+void init(void);
 
-/**
- * @brief Inicializa as variaveis de angulos iniciais do cartman
- */
-void initCartman(void);
+void Animate(int interacoes);
+void animate_kenny(int);
+
+void collision_detection(void);
 #endif //MODELAGEM_H_INCLUDED

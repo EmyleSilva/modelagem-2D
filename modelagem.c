@@ -2,6 +2,13 @@
 
 Spaceship sShip; //Variavel usada para guardar valores referentes a nave espacial
 Cartman cartman; //Variavel usada para controlar os angulos de rotação do cartman
+Object kenny; // bounding box do kenny
+Object projectile;
+int hasShot = 0; //Booleano para verificar se a barra de espaço foi pressionada
+int collision = 0; //Booleano para verificar se houve colisão (ou se o projétil já saiu da janela de visualização)
+clock_t start_time = 0;
+
+GLfloat funcValues[4]; //X0, Velocidade, tempo, gravidade 
 
 //RGB para controlar a cor da nave
 int R = 0, G = 0, B = 0; 
@@ -15,11 +22,15 @@ int main(int argc, char** argv)
     glutCreateWindow (argv[1]); 
     glClearColor(0.0118f, 0.9412f, 0.6039f, 1.0f);
     glOrtho (-10, 10,-10, 10, -1 ,1);
+    
     glutDisplayFunc(display);
     glutSpecialFunc(Special_keyboard);
     glutKeyboardFunc(keyboard);
-    initSship(); //Inicializa os valores da nave
-    initCartman(); //Inicializa os valores do cartman
+    glutTimerFunc(60, Animate, 0);
+    
+    init(); //Inicializa os objetos com seus estados iniciais 
+    srand(time(0)); //gera sementes aleatórias 
+    
     glutMainLoop();
     return 0;
 }
@@ -28,39 +39,53 @@ void display(void)
 {
     glClear(GL_COLOR_BUFFER_BIT);
 
+    //Desenha o céu
     sky();
+    //Desenha as montanhas
     mountains();
-
+    //Desenha as árvores 
     tree(2.0, -2.0, 175);
     tree(-1.0, 0.0, 216);
     tree(15.0, 0.0, 148);
     tree(11.0,-2.5, 180);
-
+    //Desenha a neve do chão
     ground();
+    //Desenha a estrada 
     road();
-
+    //Desenha as nuvens
     cloud(0.5, 0.0, 5.5);
     cloud(0.7, -5.0, 6.0);
     cloud(0.3, -8.5, 4.0);
     cloud(1.0, -6.0, 6.0);
     cloud(0.2, 4.5, 4.0); 
     cloud(0.6, 0.0, 8.0);
-
     //Desenha uma nuvem rotacionada
     glPushMatrix();
         glRotatef(40, 0.0, 0.0, 1.0);
         cloud(0.6, 2.0, 9.0);
     glPopMatrix();
-
+    //Desenha o sol
     sun(-9.0f, 9.0);
-
+    //Desenha a placa amarela
     signpost();
-    
-    printf("grau perna: %.2f | grau torso: %.2f | grau cabeça: %.2f\n\n", cartman.legs, cartman.torso, cartman.head);
+    //Desenha o cartman
     draw_cartman();
-    
-    target();
 
+    /** @brief BOUNDING BOX KENNY */
+    glColor3ub(0,0,0);
+    glBegin(GL_POLYGON);
+        glVertex2f(kenny.x_max, kenny.y_max);
+        glVertex2f(kenny.x_max, kenny.y_min);
+        glVertex2f(kenny.x_min, kenny.y_min);
+        glVertex2f(kenny.x_min, kenny.y_max);
+    glEnd();
+    
+    //Desenha o kenny (alvo)
+    glPushMatrix();
+        glTranslatef(kenny.x, kenny.y, 0.0);
+        target();
+    glPopMatrix();
+    //Desenha a nave
     glPushMatrix();
             glTranslatef(sShip.tX, sShip.tY, 0.0); 
             glScalef(sShip.scaleX, sShip.scaleY, 1.0);
@@ -68,6 +93,16 @@ void display(void)
             spaceship(); 
     glPopMatrix();
 
+    if (hasShot && !collision)
+    {
+        glPushMatrix();
+        glTranslatef(projectile.x, projectile.y, 0.0);
+        draw_projectile();
+        glPopMatrix();
+    }
+        
+
+    //Desenha uma nuvem (fica a frente da nave) 
     cloud(1.5, 5.0, 8.0);
     glutSwapBuffers();
 }
@@ -474,7 +509,7 @@ void target()
     //Desenha a parte marrom do capuz
     drawEllipse(5.0, -4.8, 0.6, 0.5, 100);
 
-    //Desenha a cabeça
+    //Desenha o rosto
     glColor3ub(224, 155, 77);
     drawEllipse(5.0, -4.8, 0.4, 0.5, 100);
     
@@ -643,19 +678,129 @@ void signpost()
     drawEllipse(-7.7744119659502,-2.4172710155313, 0.04, 0.2, 100);
 }
 
-void initSship()
+void draw_projectile(void)
+{
+    glColor3ub(253, 181, 0);
+
+    glBegin(GL_POLYGON);
+        glVertex2f(0.0, 0.0); //Ponto A
+        glVertex2f(-1.0, 1.0); //Ponto B (Sentido anti-horario)
+        glVertex2f(0.0, -1.0); //Ponto C
+        glVertex2f(-1.0, -2.0); //Ponto D
+        glVertex2f(1.0, -1.0); //Ponto E
+        glVertex2f(2.0, -2.0); //Ponto F
+        glVertex2f(1.0, 0.0); //Ponto G
+        glVertex2f(2.0, 1.0); //Ponto H
+        glVertex2f(0.0, 0.0); //Ponto A
+    glEnd();
+}
+
+
+/** Funções de Animação */
+void animate_kenny(int interacoes)
+{
+    double aux = 0.0, aux2 = 0.0, aux3 = 0.0;
+    aux = fmod(interacoes, 10); 
+    
+    //Gera valores aleatórios para movimentar o alvo de forma aleatória
+    aux2 = (GLfloat)rand();
+    aux3 = (GLfloat)rand();
+
+    //Incrementa ou decrementa a posição x de acordo com os valores aux2 e aux3 gerados aleatóriamente
+    if (aux == 0.0){
+        if(aux2 < aux3)
+        {
+            kenny.x += 1.0;
+            //Atualiza os valores de x (máximo e minimo) da bounding box do Kenny
+            kenny.x_max += 1.0;
+            kenny.x_min += 1.0;
+        }else {
+
+            kenny.x -= 1.0;
+            //Atualiza os valores de x (máximo e minimo) da bounding box do Kenny
+            kenny.x_max -= 1.0;
+            kenny.x_min -= 1.0;
+        } 
+    }
+    //Normatizar os valores para que o alvo não saia da janela de visualização 
+    if (kenny.x > 10) {kenny.x -= 1.0; kenny.x_max -= 1.0;kenny.x_min -= 1.0;} /*** @todo  NÃO DA CERTO, VER COMO CORRIGIR*/
+    if (kenny.x < -10) {kenny.x += 1.0; kenny.x_max += 1.0; kenny.x_min += 1.0;}
+}
+
+void animate_projectile(void)
+{
+    if (hasShot && !collision)
+    {
+        projectile.x = (GLfloat) funcValues[0] + (funcValues[1] * funcValues[2]); // X(t) = X0 + vt
+        projectile.y = (GLfloat) sShip.tY - (funcValues[3] * funcValues[2] * funcValues[2]) / 2.0; // Y(t) = Y0 - (gt²) / 2
+
+        /** @todo verificar como atualizar a bounding box do projetil */
+        // projectile.x_max += projectile.x_max - projectile.x;
+        // projectile.x_min = projectile.x;
+
+        // projectile.y_max -= projectile.y_max - projectile.y;
+        // projectile.y_min = projectile.y; 
+
+        funcValues[2] += 0.1;
+    }
+}
+
+void Animate(int interacoes)
+{
+    animate_kenny(interacoes);
+    animate_projectile();
+
+    glutPostRedisplay();
+    interacoes++;
+    collision_detection();
+    glutTimerFunc(60, Animate, interacoes);
+}
+
+void collision_detection(void)
+{
+    if (projectile.x > 10 || projectile.y > 10 || projectile.x < -10 || projectile.y < -10) 
+    {
+        collision = 1;
+        hasShot = 0;
+
+        projectile.x = 0.0;
+        projectile.y = sShip.tY;
+    }
+}
+
+/** Funções de inicialização */
+void init()
 {
     sShip.tX = 0.0;
     sShip.tY = 0.0;
     sShip.scaleX = 1.0;
     sShip.scaleY = 1.0; 
-}
 
-void initCartman()
-{
     cartman.head = 0.0;
     cartman.torso = 0.0;
     cartman.legs = 0.0;
+
+    kenny.x = kenny.y = 0.0; //Variaveis usadas para transladar o alvo
+    //Define os valores de x e y (minimos e máximos) da bounding box do alvo
+    kenny.x_min = 4.0; 
+    kenny.x_max = 6.05;
+    kenny.y_min = -7.1;
+    kenny.y_max = -3.8;
+
+    //Coordenadas iniciais do projétil 
+    projectile.x = 0.0;     
+    projectile.y = sShip.tY;
+    /** Defini os valores da bounding box do projétil */
+    projectile.x_min = -1.0;
+    projectile.x_max = 2.0;
+    projectile.y_min = -2.0;
+    projectile.y_max = 1.0;   
+
+    /** Valores para animação do lançamento do projétil */
+    funcValues[0] = sShip.tX; //Posição inicial x (X0)
+    funcValues[1] = 8.0; // Velocidade constante (v)
+    funcValues[2] = 0.0; //Tempo inicial (t)
+    funcValues[3] = 9.81; // Gravidade (g)
 }
 
 void Special_keyboard(GLint tecla, int x, int y)
@@ -664,9 +809,11 @@ void Special_keyboard(GLint tecla, int x, int y)
     {
         case GLUT_KEY_UP:   //Movimenta para cima
             sShip.tY+=0.5;
+            if (!hasShot) funcValues[0] += 0.5; //Atualiza o valor de X0 do projetil
             break;
         case GLUT_KEY_DOWN: //Movimenta para baixo
             sShip.tY-=0.5;
+            if (!hasShot) funcValues[0] -= 0.5; //Atualiza o valor de X0 do projetil
             break;
         case GLUT_KEY_LEFT: //Movimenta para a esquerda
             sShip.tX-=0.5;
@@ -685,7 +832,6 @@ void Special_keyboard(GLint tecla, int x, int y)
             //A verificação abaixo garante que os numeros variem apenas entre valores positivos e 0
             if(sShip.scaleX < 0 && sShip.scaleY < 0) 
                 sShip.scaleX = sShip.scaleY = 0;
-            printf("escala x: %.2f | escala y: %.2f | x: %.2f | y: %.2f\n", sShip.scaleX, sShip.scaleY, sShip.tX, sShip.tY);
             break;
         case GLUT_KEY_F1: 
             cartman.legs += 1.0;
@@ -718,6 +864,16 @@ void keyboard(unsigned char key, int x, int y)
     case 'E':
         printf("\nPrograma Finalizado!\n");
         exit(0);
+        break;
+    case 32: //Barra de espaço
+        if (!hasShot)
+        {
+            hasShot = 1;
+            collision = 0;
+            funcValues[0] = sShip.tX;
+            funcValues[2] = 0.0;
+        }
+        
         break;
     }
 }
