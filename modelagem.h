@@ -6,12 +6,17 @@
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
+
 #define PI 3.1415926
+#define Boolean int
+#define true 1
+#define false 0
 
 typedef struct spaceship
 {
     GLfloat tX, tY; //Coordenadas do centro da nave
     GLfloat scaleX, scaleY; //Variaveis usadas para escalonar a nave em x e y
+    GLint direction;
 }Spaceship;
 
 typedef struct cartman
