@@ -1,21 +1,15 @@
 #include "modelagem.h"
 
-void draw_collision(void);
-void set_collision_values(void);
-void stop_animation(void);
-void animate_collision(void);
-
 Spaceship sShip; //Variavel usada para guardar valores referentes a nave espacial
 Cartman cartman; //Variavel usada para controlar os angulos de rotação do cartman
-Object kenny; 
-Object projectile;
-Boolean hasShot = false; //Booleano para verificar se a barra de espaço foi pressionada
-Boolean moveTarget = true; //Booleano para controle de movimento do alvo
-Boolean collision[2] = {false, false}; //Booleano para verificar se o projétil saiu da janela de visualização ou se houve colisão
-GLfloat col_x = 1.0, col_y = 1.0; //Valores para animar colisão (escala x e escala y, respectivamente)
-
-
-GLfloat funcValues[4]; //X0, Velocidade, tempo, gravidade 
+Object kenny; //Objeto de controle de posição e bounding box do kenny
+Object projectile; //Objeto de controle de posição e bounding box do Projétil
+Boolean hasShot; //Booleano para verificar se a barra de espaço foi pressionada
+Boolean moveTarget; //Booleano para controle de movimento do alvo
+Boolean collision[2]; //Booleano para verificar se o projétil saiu da janela de visualização ou se houve colisão
+Boolean restart; //Booleano para definir se a animação deve ser redefinida para o estado inicial
+GLfloat col_x, col_y; //Valores para animar colisão (escala x e escala y, respectivamente)
+GLfloat funcValues[5]; //X0,Velocidade, tempo, gravidade, Y0 
 
 //RGB para controlar a cor da nave
 int R = 0, G = 0, B = 0; 
@@ -81,27 +75,32 @@ void display(void)
     //Desenha o kenny (alvo)
     if(moveTarget){
         glPushMatrix();
-            glTranslatef(kenny.x, kenny.y, 0.0);           
+            glTranslatef(kenny.x, kenny.y, 0.0); //Atualiza a posição do kenny          
             target();
         glPopMatrix();
     }
 
     //Desenha a nave
     glPushMatrix();
-            glTranslatef(sShip.tX, sShip.tY, 0.0); 
+            //Atualiza a posição da nave
+            glTranslatef(sShip.tX, sShip.tY, 0.0);
+            //Realiza a escala da nave (multiplica x por direction para alterar a direção da nave) 
             glScalef(sShip.scaleX * sShip.direction, sShip.scaleY, 1.0);
             glTranslatef(-sShip.tX, -sShip.tY, 0.0);
             spaceship(); 
     glPopMatrix();
 
+    //Verifica se o projétil foi lançado e se ainda não houve colisão (ou saida da tela)
     if (hasShot && !collision[0] && !collision[1])
     {
+        //Desenha o projétil
         glPushMatrix();
         glTranslatef(projectile.x, projectile.y, 0.0);
         draw_projectile();
         glPopMatrix();
     }else if (collision[1])
     {
+        //Em caso de colisão, para a animação e mostra os efeitos de colisão
         stop_animation();
 
         glPushMatrix();
@@ -118,8 +117,15 @@ void display(void)
             draw_collision();
         glPopMatrix();
     }
-        
 
+    //Desenha a fala do cartman após a colisão
+    if (col_x <= 0) 
+    {
+        glPushMatrix();
+            glTranslatef(4.0, -2.0, 0.0);
+            draw_text("PUTA MERDA MATARAM O KENNY", "FILHOS DA PUTAAAAAAAAA!!!!");
+        glPopMatrix();
+    }
     //Desenha uma nuvem (fica a frente da nave) 
     cloud(1.5, 5.0, 8.0);
     glutSwapBuffers();
@@ -698,10 +704,10 @@ void signpost()
 
 void draw_projectile(void)
 {
-    glColor3ub(253, 181, 0);
+    glColor3ub(253, 181, 0); //Define a cor amarela
 
     glPushMatrix();
-    glScalef(0.5, 0.5, 1.0);
+    glScalef(0.5, 0.5, 1.0); //Diminui o tamanho do projétil
     glBegin(GL_POLYGON);
         glVertex2f(0.0, 0.0); //Ponto A
         glVertex2f(-1.0, 1.0); //Ponto B (Sentido anti-horario)
@@ -718,7 +724,7 @@ void draw_projectile(void)
 
 void draw_collision(void)
 {
-    glColor3ub(250, 78, 0);
+    glColor3ub(250, 78, 0); //Define a cor laranja
     glBegin(GL_POLYGON);
         glVertex2f(-1.0, 0.0);
         glVertex2f(-2.0, 1.0);
@@ -736,9 +742,48 @@ void draw_collision(void)
     glEnd();
 }
 
+void draw_text(char *string1, char *string2) {
+    glColor3ub(255, 255, 255); 
+
+    //Desenha o trinagulo da ponta do balão de fala
+    glPushMatrix();
+        glScalef(1.3, 1.3, 1.0);
+        glBegin(GL_POLYGON);
+            glVertex2f(-1.0, 0.0);
+            glVertex2f(0.0, -1.0);
+            glVertex2f(-2.0, -2.0);
+            glVertex2f(-1.0, 0.0);
+        glEnd();
+    glPopMatrix();
+
+    //Desenha o circulo do balão de fala
+    glPushMatrix();
+    glScalef(2.0, 0.8, 1.0);
+        drawCircle(0.0, 0.0, 2.0, 100);
+    glPopMatrix();
+
+  	glColor3ub(0,0,0);
+
+    //Desenha o texto do balão de fala
+  	glPushMatrix();
+        glRasterPos2f(-4.0, 0.0); //Define a posição do primeiro caracter da primeira string
+        // Exibe caracter a caracter
+        while(*string1)
+             glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24,*string1++);
+	glPopMatrix();
+
+    glPushMatrix();
+        glRasterPos2f(-3.5, -0.5); //Define a posição do primeiro caracter da primeira string
+        // Exibe caracter a caracter
+        while(*string2)
+             glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24,*string2++);
+	glPopMatrix();
+}
+
 /** Funções de Animação */
 void animate_kenny(int interacoes)
 {
+    // Faz as alterações apenas se não houve colisão
     if (moveTarget){
         double aux = 0.0, aux2 = 0.0, aux3 = 0.0;
         aux = fmod(interacoes, 10); 
@@ -751,37 +796,39 @@ void animate_kenny(int interacoes)
         if (aux == 0.0){
             if(aux2 < aux3)
             {
-                kenny.x += 1.0;
+                kenny.x += 2.0;
                 //Atualiza os valores de x (máximo e minimo) da bounding box do Kenny
-                kenny.x_max += 1.0;
-                kenny.x_min += 1.0;
+                kenny.x_max += 2.0;
+                kenny.x_min += 2.0;
             }else {
-
-                kenny.x -= 1.0;
+                kenny.x -= 2.0;
                 //Atualiza os valores de x (máximo e minimo) da bounding box do Kenny
-                kenny.x_max -= 1.0;
-                kenny.x_min -= 1.0;
+                kenny.x_max -= 2.0;
+                kenny.x_min -= 2.0;
             } 
         }
         //Normatizar os valores para que o alvo não saia da janela de visualização 
-        /** @todo Ainda não está correto */
-
-         if (kenny.x_max > 10 || kenny.x_min < -10)
+         if (kenny.x_max > 10.0) //Verifica se o valor de x_max da bouding box ultrapassou a tela no lado direito
          {
-            kenny.x_max = -kenny.x_max;
-            kenny.x_min = -kenny.x_min;
-            kenny.x = -kenny.x;
-            kenny.y = -kenny.y;
+            kenny.x_max -= 1.0;
+            kenny.x_min -= 1.0;
+            kenny.x -= 1.0;
+
+         }else if (kenny.x_min < -10.0){ //Verifica se o valor de x_min da bounding box ultrapassou a tela no lado esquerdo
+            kenny.x_max += 1.0;
+            kenny.x_min += 1.0;
+            kenny.x += 1.0;
          }
     }
 }
 
 void animate_projectile(void)
 {
+    // Executa a atualização na posição apenas se houve desparo e se não houve colisão nem saida do projétil da janela de visualização
     if (hasShot && !collision[0] && !collision[1])
     {
         projectile.x = (GLfloat) funcValues[0] + (sShip.direction * funcValues[1] * funcValues[2]); // X(t) = X0 + vt * (direcao da nave)
-        projectile.y = (GLfloat) sShip.tY - (funcValues[3] * funcValues[2] * funcValues[2]) / 2.0; // Y(t) = Y0 - (gt²) / 2
+        projectile.y = (GLfloat) funcValues[4] - (funcValues[3] * funcValues[2] * funcValues[2]) / 2.0; // Y(t) = Y0 - (gt²) / 2
 
         /** Atualiza os valores da bounding box */ 
         projectile.x_min = projectile.x - 0.5;
@@ -796,19 +843,18 @@ void animate_projectile(void)
 
 void animate_collision(void)
 {
+    /*Se houve colisão e o efeito da explosão ainda é visivel (col_x > 0)
+     os valores para o fator de escala da explosão são decrementados*/
     if (!moveTarget && col_x > 0.0)
     {
         col_x -= 0.1;
         col_y -= 0.1;
     }
-    // if (col_x <= 0)
-    // {
-        /** @todo Animar fala do cartman */
-    // }
 }
 
 void Animate(int interacoes)
 {
+    if (restart) restart_animation();
     animate_kenny(interacoes);
     animate_projectile();
     animate_collision();
@@ -819,18 +865,22 @@ void Animate(int interacoes)
     glutTimerFunc(60, Animate, interacoes);
 }
 
+/** Funções de controle de colisão */
 void collision_detection(void)
 {
-    if (projectile.x > 10 || projectile.y > 10 || projectile.x < -10 || projectile.y < -10) 
+    if (projectile.x > 10 || projectile.y > 10 || projectile.x < -10 || projectile.y < -10) //Verifica se o projétil saiu da janela gráfica
     {
-        collision[0] = 1;
-        collision[1] = 0;
-        set_collision_values();
-    }else if(projectile.x_max >= kenny.x_min && projectile.x_min <= kenny.x_max && projectile.y_max >= kenny.y_min && projectile.y_min <= kenny.y_max)
+        // Atualiza os valores quando o projétil sai da tela
+        collision[0] = true; //Define o verificador de saida da tela como verdadeiro
+        collision[1] = false; //Define o verificador de colisão como falso
+        set_collision_values(); //Redefine os valores de animação do projétil
+    }else if(projectile.x_max >= kenny.x_min && projectile.x_min <= kenny.x_max 
+    && projectile.y_max >= kenny.y_min && projectile.y_min <= kenny.y_max) //Verifica se houve colisão
     {
-        collision[0] = 0;
-        collision[1] = 1;
-        set_collision_values();
+        // Atualiza os valores quando há colisão
+        collision[0] = false; //Define o verificador de saida da tela como falso
+        collision[1] = true; //Define o verificador de colisão como verdadeiro
+        set_collision_values(); //Redefine os valores de animação do projétil
     }
 }
 
@@ -838,26 +888,28 @@ void set_collision_values(void)
 {
     hasShot = false; //Define a variavel de lançamento como falsa 
 
-    //Redefini as coordenadas do projétil para o ponto inicial
+    //Redefine as coordenadas do projétil para o ponto inicial
     projectile.x = 0.0;
     projectile.y = 0.0;
 }
 
 void stop_animation()
 {
-    hasShot = 1;
-    moveTarget = 0;
+    hasShot = true; //Define o verificador de lançamento como verdadeira (dessa maneira, a nave não pode mais desparar) 
+    moveTarget = false; //Define o validador de movimento do alvo como falsa (para o movimento do kenny)
 }
 
 /** Função de inicialização */
 void init()
 {
+    //Inicializa os valores da nave
     sShip.tX = 0.0;
     sShip.tY = 0.0;
     sShip.scaleX = 1.0;
     sShip.scaleY = 1.0; 
     sShip.direction = 1.0;
 
+    //Inicializa as variaveis de ângulo de rotação do cartman (TGs Hierárquicas)
     cartman.head = 0.0;
     cartman.torso = 0.0;
     cartman.legs = 0.0;
@@ -878,6 +930,56 @@ void init()
     funcValues[1] = 8.0; // Velocidade constante (v)
     funcValues[2] = 0.0; //Tempo inicial (t)
     funcValues[3] = 9.81; // Gravidade (g)
+    funcValues[4] = sShip.tY; //Posição inicial de y (Y0)
+
+    hasShot = false; //Define o verificador de disparo como falso
+    moveTarget = true; //Define o controlador de movimento do alvo como verdadeiro
+    collision[0] = false; //Define o verificador de saido do projétil da janela de visualização como falsa
+    collision[1] = false; //Define o verificador de colisão com o alvo como falsa
+    restart = false; //Define o controle de reiniciar como falso
+    
+    //Define a escala inicial do efeito de explosão como 1 (A explosão começa com o tamanho original e vai diminuindo)
+    col_x = 1.0; 
+    col_y = 1.0; 
+}
+
+/** Função para reiniciar a animação */
+void restart_animation(void)
+{
+    sShip.tX = 0.0;
+    sShip.tY = 0.0;
+    sShip.scaleX = 1.0;
+    sShip.scaleY = 1.0; 
+    sShip.direction = 1.0;
+
+    cartman.head = 0.0;
+    cartman.torso = 0.0;
+    cartman.legs = 0.0;
+
+    kenny.x = kenny.y = 0.0;
+    kenny.x_min = 4.0; 
+    kenny.x_max = 6.05;
+    kenny.y_min = -7.1;
+    kenny.y_max = -3.8;
+
+    projectile.x = 0.0;     
+    projectile.y = 0.0;
+    projectile.x_min = sShip.tX - 0.5;
+    projectile.x_max = sShip.tX + 1.0;
+    projectile.y_min = sShip.tY - 1.0;
+    projectile.y_max = sShip.tY + 0.5; 
+
+    col_x = col_y = 1.0;
+
+    hasShot = false;
+    moveTarget = true;
+    collision[0] = false;
+    collision[1] = false;
+    restart = false;
+
+    funcValues[2] = 0.0;
+    funcValues[0] = sShip.tX;
+    funcValues[4] = sShip.tY;
 }
 
 /** Funções para captura de eventos do teclado */
@@ -952,8 +1054,9 @@ void keyboard(unsigned char key, int x, int y)
             hasShot = true; //Define a variavel de disparo como verdadeira
             collision[0] = false; //Define a variavel de saida de tela como falsa
             collision[1] = false; ////Define a variavel de colisão como falsa
-            funcValues[0] = sShip.tX; //Define X0 como o centro da nave
+            funcValues[0] = sShip.tX; //Define X0 como o valor atual de X da nave
             funcValues[2] = 0.0; //Define o tempo inicial como 0
+            funcValues[4] = sShip.tY; //Define Y0 com o valor atual de Y da nave
 
             /** Define os valores iniciais da bounding box do projétil */ 
             projectile.x_min = sShip.tX - 0.5;
@@ -963,5 +1066,11 @@ void keyboard(unsigned char key, int x, int y)
         }
         
         break;
+    case 82: //R
+    case 114: //r
+        //Reinicia a animação para os valores iniciais 
+        restart = true;
+        break;
+        
     }
 }
